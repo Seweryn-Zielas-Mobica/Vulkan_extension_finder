@@ -1,28 +1,48 @@
 import os
 import json
 import csv
+import argparse
 
-directory = 'GPUs_JSONS'
- 
+parser = argparse.ArgumentParser(description='A test program.')
 
-searched_extensions = ("VK_EXT_full_screen_exclusive", "VK_EXT_calibrated_timestamps",
-                       "VK_KHR_fragment_shader_barycentric", "VK_KHR_shader_quad_scope")
+parser.add_argument("-d","--json_directory", help="Directory containing json files.", required=True)
+parser.add_argument("-f", "--extensions_file", help ="Filed containing searched extensions, each extensions in separate row",
+                    required=True)
 
+args = parser.parse_args()
+
+json_directory = args.json_directory
+extensions_filename = args.extensions_file
+
+searched_extensions = []
 json_files = []
 gpus = {}
- 
-# iterate over files in
-# that directory
+
 def main():
-    search_for_json_files(directory, json_files)
+    read_extensions_file(extensions_filename)
+    
+    print()
+    print("Provided extensions:")
+    for extensions in searched_extensions:
+        print(extensions)
+    print()
+    
+    search_for_json_files(json_directory, json_files)
+    
+    print("Searched files:")
+    for file in json_files:
+        print(file)
+    print()
             
     for json_filename in json_files:
         search_json_for_extensions(json_filename, gpus)
-
-
-    print(gpus)
         
-    write_to_csv("test.csv", gpus)
+    write_to_csv("GPUs_extensions_list.csv", gpus)
+
+def read_extensions_file(filename):
+    with open(filename, 'r', encoding='UTF8',) as f:
+        for line in f:
+            searched_extensions.append(line.rstrip())
 
 def search_for_json_files(directory, json_files):
     for filename in os.listdir(directory):
@@ -57,10 +77,7 @@ def search_json_for_extensions(json_filename, gpus):
     for gpu in gpus:
         if gpu in json_filename:
             gpus[gpu] = value
-    
-                                
-            
-
+                                   
 def write_to_csv(filename, gpus):
     gpus_info = ["GPU", "Extensions"]
 
@@ -73,6 +90,5 @@ def write_to_csv(filename, gpus):
             row = [key, value]
             writer.writerow(row)
     
-
 if __name__ == "__main__":
     main()
